@@ -1,0 +1,9 @@
+.git
+.idea
+Bank/bin
+images
+*.ucls
+test.ucls
+.classpath
+.project
+.env
