@@ -48,7 +48,18 @@ public class Main extends Application {
 		}
 	
 	public static void main(String[] args) throws SQLException {
-		connectDB("jdbc:mysql://localhost:3306/bank","root",""); //connectDB(url,user,password);
+		// Read DB settings from environment (falls back to the original local defaults),
+		// so the same build runs both locally and inside Docker/Compose.
+		String url  = envOrDefault("DB_URL",  "jdbc:mysql://localhost:3306/bank");
+		String user = envOrDefault("DB_USER", "root");
+		String pass = System.getenv("DB_PASSWORD"); // empty string is a valid (blank) password
+		if (pass == null) pass = "";
+		connectDB(url, user, pass); //connectDB(url,user,password);
 		launch(args);  //Starting GUI
+	}
+
+	private static String envOrDefault(String key, String def) {
+		String v = System.getenv(key);
+		return (v == null || v.isEmpty()) ? def : v;
 	}
 }

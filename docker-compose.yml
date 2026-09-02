@@ -1,0 +1,35 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      # Matches the app's default credentials (root / empty password).
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_HOST: "%"          # allow the app container to connect as root
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-bank}"
+    volumes:
+      - ./docker/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: "${DB_URL:-jdbc:mysql://db:3306/bank}"
+      DB_USER: "${DB_USER:-root}"
+      DB_PASSWORD: "${DB_PASSWORD:-}"
+      DB_HOST: "${DB_HOST:-db}"
+      DB_PORT: "${DB_PORT:-3306}"
+      SCREEN_GEOMETRY: "${SCREEN_GEOMETRY:-1024x768x24}"
+    ports:
+      - "${NOVNC_PORT:-6080}:6080"   # browser:  http://localhost:6080/vnc.html
+      - "${VNC_PORT:-5900}:5900"     # VNC client: localhost:5900
+
+volumes:
+  db_data:
